@@ -60,7 +60,7 @@ def main(args):
         print(f"\nTraining loss: {train_loss / len(train_loader)}\n", flush=True)
         train_loss = 0
 
-        torch.save(model.state_dict(), f"./ckpt/{epoch}_final.ckpt")
+        torch.save(model.state_dict(), f"./ckpt/{epoch}_final2.ckpt")
 
         # validate model
         titles = []
@@ -86,15 +86,15 @@ def main(args):
                     print("Update best model")
                     best_f = eval_res["rouge-l"]["f"]
                     torch.save(model.state_dict(), args.ckpt_path)
-                with open(f"./valid_{epoch}_final.json", "w") as fp:
+                with open(f"./valid_{epoch}_final2.json", "w") as fp:
                     json.dump(eval_res, fp, indent=4)
-                with open("./log.txt", 'a') as fp:
-                    print(f"step: {step}, eval_res", flush=True, file=fp)
+                with open("./log2.txt", 'a') as fp:
+                    print(f"step: {step}, {eval_res}", flush=True, file=fp)
 
     
 def parse_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument("--ckpt_path", type=str, default="./ckpt/best_final.ckpt")
+    parser.add_argument("--ckpt_path", type=str, default="./ckpt/best_final2.ckpt")
     parser.add_argument("--train_file", type=str, default="./data/train.jsonl")
     parser.add_argument("--test_file", type=str, default="./data/public.jsonl")
 
@@ -102,7 +102,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--train_batch_size", type=int, default=32)
     parser.add_argument("--test_batch_size", type=int, default=16)
 
-    parser.add_argument("--lr", type=float, default=5e-3)
+    parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--weight_decay", type=float, default=1e-3)
 
     parser.add_argument("--accu_step", type=int, default=1)
