@@ -131,3 +131,4 @@ dmypy.json
 # valid.json & ckpt
 ckpt/
 *.json
+data/
