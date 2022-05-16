@@ -1,0 +1,1 @@
+python3.8 inference.py --test_file ${1} --inference_file ${2}
