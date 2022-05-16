@@ -61,8 +61,8 @@ class T5_dataset(Dataset):
             target_mask = targets["attention_mask"].squeeze()
         
         if self.mode == 'train':
-            return {"source_ids": source_ids, "source_mask": src_mask, "target_ids": target_ids, "target_mask": target_mask, "target": self.dataset[index]['title']}
+            return {"source_ids": source_ids, "source_mask": src_mask, "target_ids": target_ids, "target_mask": target_mask, "target": self.dataset[index]['title'], "id": self.dataset[index]['id']}
         elif self.mode == 'dev':
-            return {"source_ids": source_ids, "source_mask": src_mask, "target": self.dataset[index]['title']}
-        return {"source_ids": source_ids, "source_mask": src_mask}
+            return {"source_ids": source_ids, "source_mask": src_mask, "target": self.dataset[index]['title'], "id": self.dataset[index]['id']}
+        return {"source_ids": source_ids, "source_mask": src_mask, "id": self.dataset[index]['id']}
         
