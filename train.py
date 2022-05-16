@@ -30,7 +30,7 @@ def main(args):
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.train_batch_size, shuffle=True)
     val_loader = DataLoader(dataset=dev_dataset, batch_size=args.test_batch_size, shuffle=False)
     
-    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     # fp-16 training
     model, optimizer, train_loader, val_loader = accelerator.prepare(model, optimizer, train_loader, val_loader)
@@ -68,10 +68,10 @@ def main(args):
         model.eval()
         with torch.no_grad():
             for data in tqdm(val_loader):
-                text = data['source_ids'].squeeze().to(device)
-                mask = data['source_mask'].to(device)
+                texts = data['source_ids'].squeeze().to(device)
+                masks = data['source_mask'].to(device)
                 title = data['target']
-                out = model.generate(input_ids=text, attention_mask=mask, max_length=args.out_max_length, num_beams=2)
+                out = model.generate(input_ids=texts, attention_mask=masks, max_length=args.out_max_length, num_beams=2)
                 output = tokenizer.batch_decode(out, skip_special_tokens=True, clean_up_tokenization_spaces=True)
                 for ott, ttl in zip(output, title):
                     if ott:
@@ -94,16 +94,16 @@ def main(args):
     
 def parse_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument("--ckpt_path", type=str, default="./ckpt/best_final2.ckpt")
-    parser.add_argument("--train_file", type=str, default="./data/train.jsonl")
-    parser.add_argument("--test_file", type=str, default="./data/public.jsonl")
+    parser.add_argument("--ckpt_path", type=str, default="ckpt/best_final2.ckpt")
+    parser.add_argument("--train_file", type=str, default="data/train.jsonl")
+    parser.add_argument("--test_file", type=str, default="data/public.jsonl")
 
     parser.add_argument("--num_epoch", type=int, default=20)
     parser.add_argument("--train_batch_size", type=int, default=32)
     parser.add_argument("--test_batch_size", type=int, default=16)
 
-    parser.add_argument("--lr", type=float, default=5e-5)
-    parser.add_argument("--weight_decay", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=0.001)
+    parser.add_argument("--weight_decay", type=float, default=0.01)
 
     parser.add_argument("--accu_step", type=int, default=1)
     # parser.add_argument("--log_step", type=int, default=500)
