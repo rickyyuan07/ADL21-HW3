@@ -30,8 +30,7 @@ def main(args):
 
     model.load_state_dict(torch.load(args.ckpt_path))
     # validate model
-    titles = []
-    res = []
+    titles, res, ids = [], [], []
     model.eval()
     with torch.no_grad():
         for data in tqdm(val_loader):
@@ -49,23 +48,24 @@ def main(args):
                 temperature=args.temperature
             )
             output = tokenizer.batch_decode(out, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-            for ott, ttl in zip(output, title):
+            for ott, ttl, data_id in zip(output, title, data['id']):
                 if ott:
                     res.append(ott)
                     titles.append(ttl)
+                    ids.append(data_id)
 
     eval_res = get_rouge(res, titles)
     print(100*eval_res['rouge-1']['f'], 100*eval_res['rouge-2']['f'], 100*eval_res['rouge-l']['f'])
     with open(args.inference_file, 'w+') as fout:
-        for pred in res:
-            print(pred, file=fout)
+        for pred, data_id in zip(res, ids):
+            print({"title": pred, "id": data_id}, file=fout)
 
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument("--ckpt_path", type=str, default="ckpt/7_final2.ckpt")
+    parser.add_argument("--ckpt_path", type=str, default="ckpt/final.ckpt")
     parser.add_argument("--test_file", type=str, default="data/public.jsonl")
-    parser.add_argument("--inference_file", type=str, default="output/inference.txt")
+    parser.add_argument("--inference_file", type=str, default="output/submission.jsonl")
 
     parser.add_argument("--test_batch_size", type=int, default=4)
 
@@ -74,9 +74,9 @@ def parse_args() -> Namespace:
 
     parser.add_argument("--device", type=str, default="cuda:0")
 
-    parser.add_argument("--num_beams", type=int, default=2)
-    parser.add_argument("--top_k", type=int, default=50)
+    parser.add_argument("--num_beams", type=int, default=3)
     parser.add_argument("--do_sample", action="store_true")
+    parser.add_argument("--top_k", type=int, default=50)
     parser.add_argument("--top_p", type=float, default=1.0)
     parser.add_argument("--temperature", type=float, default=1.0)
 
