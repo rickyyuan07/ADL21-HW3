@@ -36,23 +36,33 @@ class T5_dataset(Dataset):
             print("Input Text: ", self.clean_text(example_batch['maintext']))
         
         input_ = self.clean_text(example_batch['maintext'])
-        target_ = self.clean_text(example_batch['title'])
-        
         source = self.tokenizer.batch_encode_plus([input_], max_length=self.input_length, 
                                                      padding='max_length', truncation=True, return_tensors="pt")
         
+        if self.mode == 'test':
+            return source
+        
+        target_ = self.clean_text(example_batch['title'])
         with self.tokenizer.as_target_tokenizer():
             targets = self.tokenizer.batch_encode_plus([target_], max_length=self.output_length, 
                                                      padding='max_length', truncation=True, return_tensors="pt")
         return source, targets
   
     def __getitem__(self, index):
-        source, targets = self.convert_to_features(self.dataset[index])
-        source_ids = source.input_ids.squeeze()
-        target_ids = targets.input_ids.squeeze()
-        src_mask    = source["attention_mask"].squeeze()
-        target_mask = targets["attention_mask"].squeeze()
+        if self.mode == 'test':
+            source = self.convert_to_features(self.dataset[index])
+            source_ids = source.input_ids.squeeze()
+            src_mask    = source["attention_mask"].squeeze()
+        else:
+            source, targets = self.convert_to_features(self.dataset[index])
+            source_ids = source.input_ids.squeeze()
+            target_ids = targets.input_ids.squeeze()
+            src_mask    = source["attention_mask"].squeeze()
+            target_mask = targets["attention_mask"].squeeze()
+        
         if self.mode == 'train':
-            return {"source_ids": source_ids, "source_mask": src_mask, "target_ids": target_ids, "target_mask": target_mask}
-        return {"source_ids": source_ids, "source_mask": src_mask, "target": self.dataset[index]['title']}
+            return {"source_ids": source_ids, "source_mask": src_mask, "target_ids": target_ids, "target_mask": target_mask, "target": self.dataset[index]['title']}
+        elif self.mode == 'dev':
+            return {"source_ids": source_ids, "source_mask": src_mask, "target": self.dataset[index]['title']}
+        return {"source_ids": source_ids, "source_mask": src_mask}
         
